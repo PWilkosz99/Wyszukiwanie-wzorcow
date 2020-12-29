@@ -8,7 +8,7 @@ namespace Wyszukiwanie_wzorcow
     {
         static void Main(string[] args)
         {
-            Z1.Wypisz();
+            //Z1.Wypisz();
 
             //Z2.Wypisz();
 
@@ -30,12 +30,12 @@ namespace Wyszukiwanie_wzorcow
 
             List<string> list = new List<string>();
             string s;
-
+            int h;
             while ((s = sr.ReadLine()) != null)
             {
-                if (s.Contains("Part, name=") == true)
+                if (( h = BM.BoyerMooreHorspoolSearch("Part, name=", s) ) > 0)
                 {
-                    s = s.Remove(0, s.LastIndexOf("=") + 1);
+                    s = s.Remove(0, h + 11);
                     list.Add(s);
                 }
             }
@@ -64,7 +64,7 @@ namespace Wyszukiwanie_wzorcow
 
             while ((s = sr.ReadLine()) != null)
             {
-                if ((s.Contains("*Elset, elset=") || s.Contains("*Nset, nset=")) == true)
+                if (((BM.BoyerMooreHorspoolSearch("*Elset, elset=", s) > -1) || (BM.BoyerMooreHorspoolSearch("*Nset, nset=", s) > -1)) == true)
                 {
                     s = s.Remove(0, s.LastIndexOf("=") + 1);
                     list.Add(s);
@@ -93,12 +93,12 @@ namespace Wyszukiwanie_wzorcow
 
             List<string> list = new List<string>();
             string s;
-
+            int h;
             while ((s = sr.ReadLine()) != null)
             {
-                if (s.Contains("*Element, type=") == true)
+                if ((h = BM.BoyerMooreHorspoolSearch("*Element, type=", s)) > -1)
                 {
-                    s = s.Remove(0, s.LastIndexOf("=") + 1);
+                    s = s.Remove(0, h + 15);
                     list.Add(s);
                 }
             }
@@ -135,12 +135,13 @@ namespace Wyszukiwanie_wzorcow
             int i=0;
             int j=0;
             bool inc=false;
+            int h;
             Materialy[] m = new Materialy[5];
             while ((s = sr.ReadLine()) != null)
             {
-                if (s.Contains("*Material") == true)
+                if ((h = BM.BoyerMooreHorspoolSearch("*Material", s)) > -1)
                 {
-                    s = s.Remove(0, s.LastIndexOf("=") + 1);
+                    s = s.Remove(0, h + 16);
                     m[i].Nazwa = s;
                     inc = true;
                 }
@@ -199,31 +200,31 @@ namespace Wyszukiwanie_wzorcow
             bool corr=false;
             while ((s = sr.ReadLine()) != null)
             {
-                if (s.Contains("** STEP:") == true)
+                if ((BM.BoyerMooreHorspoolSearch("** STEP:", s)) > -1)
                 {
                     status = true;
                 }
-                if (s.Contains("** Interaction:") == true)
+                if ((BM.BoyerMooreHorspoolSearch("** Interaction:", s)) > -1)
                 {
                     c[0] = true;
                     continue;
                 }
-                if (s.Contains("** OUTPUT REQUESTS") == true)
+                if ((BM.BoyerMooreHorspoolSearch("** OUTPUT REQUESTS", s)) > -1)
                 {
                     c[1] = true;
                     continue;
                 }
-                if (s.Contains("** FIELD OUTPUT:") == true)
+                if ((BM.BoyerMooreHorspoolSearch("** FIELD OUTPUT:", s)) > -1)
                 {
                     c[2] = true;
                     continue;
                 }
-                if (s.Contains("** HISTORY OUTPUT:") == true)
+                if ((BM.BoyerMooreHorspoolSearch("** HISTORY OUTPUT:", s)) > -1)
                 {
                     c[3] = true;
                     continue;
                 }
-                if(s.Contains("*End Step") == true)
+                if ((BM.BoyerMooreHorspoolSearch("*End Step", s)) > -1)
                 {
                     if((status == true && c[0] == true && c[1] == true && c[2] == true && c[3] == true)||
                         status == true && c[0] == false && c[1] == false && c[2] == false && c[3] == false)
@@ -253,6 +254,46 @@ namespace Wyszukiwanie_wzorcow
             {
                 Console.WriteLine("Stop został zdefiniwany błednie");
             }
+        }
+
+
+    }
+
+    class BM
+    {
+        public static int BoyerMooreHorspoolSearch(string ptrn, string txt)
+        {
+            char[] pattern = ptrn.ToCharArray();
+            char[] text = txt.ToCharArray();
+
+            int[] shift = new int[256];
+
+            for (int k = 0; k < 256; k++)
+            {
+                shift[k] = pattern.Length;
+            }
+
+            for (int k = 0; k < pattern.Length - 1; k++)
+            {
+                shift[pattern[k]] = pattern.Length - 1 - k;
+            }
+
+            int i = 0, j = 0;
+
+            while ((i + pattern.Length) <= text.Length)
+            {
+                j = pattern.Length - 1;
+
+                while (text[i + j] == pattern[j])
+                {
+                    j -= 1;
+                    if (j < 0)
+                        return i;
+                }
+
+                i = i + shift[text[i + pattern.Length - 1]];
+            }
+            return -1;
         }
     }
 }
